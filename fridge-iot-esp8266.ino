@@ -2,7 +2,6 @@
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
 
-
 #define DHTPIN 4     // Digital pin connected to the DHT sensor
 #define DHTTYPE DHT22   // DHT 22  (AM2302), AM2321
 DHT dht(DHTPIN, DHTTYPE);
@@ -13,8 +12,8 @@ const char* mqttServer = "driver.cloudmqtt.com";
 const int   mqttPort = 18960;
 const char* mqttUser = "";
 const char* mqttPassword = "";
-const char* tempTopic = "firo-esp/temperature";
-const char* humiTopic = "firo-esp/humidity";
+const char* topic = "fridgeIoT";
+const char* serial = "123-456-789";
 
  
 WiFiClient espClient;
@@ -33,7 +32,6 @@ void setup() {
   Serial.println("Connected to the WiFi network!");
 
   client.setServer(mqttServer, mqttPort);
-  //client.setCallback(callback);
 
   while (!client.connected()) {
     Serial.println("Connecting to MQTT...");
@@ -50,7 +48,6 @@ void setup() {
  
     }
   }
-  
 }
 
 void loop() {
@@ -64,14 +61,43 @@ void loop() {
     return;
   }
 
+  static char jsonData0[10] = "{\"s__c\":";
+  static char jsonData1[10] = ", \"t__c\":";
+  static char jsonData2[10] = ", \"h__c\":";
+  static char jsonData5[10] = ", \"p__c\":";
+  static char jsonData3[5] = "}";
+  static char jsonData4[5] = "\"";
+  char sensorValue[80];
+
+
+  strcpy(sensorValue, jsonData0);
+  strcat(sensorValue, jsonData4);
+  strcat(sensorValue, serial);
+  strcat(sensorValue, jsonData4);
+
+  strcat(sensorValue, jsonData1);
+  strcat(sensorValue, jsonData4);
+  strcat(sensorValue, String(t).c_str());
+  strcat(sensorValue, jsonData4);
+  
+  strcat(sensorValue, jsonData2);
+  strcat(sensorValue, jsonData4);
+  strcat(sensorValue, String(h).c_str());
+  strcat(sensorValue, jsonData4);
+  
+  strcat(sensorValue, jsonData5);
+  strcat(sensorValue, jsonData4);
+  strcat(sensorValue, String(random(75, 90)).c_str());
+  strcat(sensorValue, jsonData4);
+  
+  strcat(sensorValue, jsonData3);
+  client.publish(topic, sensorValue);
+
   Serial.print(F("Temperature: "));
   Serial.print(t);
   Serial.print(F("°C "));
   Serial.print(F(" Humidity: "));
   Serial.print(h);
   Serial.println(F("%"));
-
-  client.publish(tempTopic, String(t).c_str());
-  client.publish(humiTopic, String(h).c_str());
   
 }
