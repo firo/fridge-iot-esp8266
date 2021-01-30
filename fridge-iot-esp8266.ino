@@ -9,17 +9,20 @@ DHT dht(DHTPIN, DHTTYPE);
 const char* ssid = "";
 const char* password = "";
 const char* mqttServer = "driver.cloudmqtt.com";
-const int   mqttPort = 18960;
+const int   mqttPort = ;
 const char* mqttUser = "";
 const char* mqttPassword = "";
 const char* topic = "fridgeIoT";
 const char* serial = "123-456-789";
-
  
 WiFiClient espClient;
 PubSubClient client(espClient);
 
 void setup() {
+  
+  pinMode(D1, INPUT);
+  pinMode(LED_BUILTIN, OUTPUT);
+  
   Serial.begin(9600);
   Serial.println(F("Fridge IoT!")); 
   dht.begin();
@@ -61,6 +64,16 @@ void loop() {
     return;
   }
 
+  byte val = digitalRead(D1);
+  if (val == HIGH) {
+    digitalWrite(LED_BUILTIN, LOW); // Turn the LED on by making the voltage LOW
+    h = 0;
+    t = 0;
+  } else { 
+    digitalWrite(LED_BUILTIN, HIGH ); // Turn the LED off by making the voltage HIGH
+  }
+
+  
   static char jsonData0[10] = "{\"s__c\":";
   static char jsonData1[10] = ", \"t__c\":";
   static char jsonData2[10] = ", \"h__c\":";
@@ -69,7 +82,7 @@ void loop() {
   static char jsonData4[5] = "\"";
   char sensorValue[80];
 
-
+  
   strcpy(sensorValue, jsonData0);
   strcat(sensorValue, jsonData4);
   strcat(sensorValue, serial);
